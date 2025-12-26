@@ -1,132 +1,130 @@
-# Claude Squad [![CI](https://github.com/smtg-ai/claude-squad/actions/workflows/build.yml/badge.svg)](https://github.com/smtg-ai/claude-squad/actions/workflows/build.yml) [![GitHub Release](https://img.shields.io/github/v/release/smtg-ai/claude-squad)](https://github.com/smtg-ai/claude-squad/releases/latest)
+# AI CLI Squad
 
-[Claude Squad](https://smtg-ai.github.io/claude-squad/) is a terminal app that manages multiple [Claude Code](https://github.com/anthropics/claude-code), [Codex](https://github.com/openai/codex), [Gemini](https://github.com/google-gemini/gemini-cli) (and other local agents including [Aider](https://github.com/Aider-AI/aider)) in separate workspaces, allowing you to work on multiple tasks simultaneously.
+A terminal app that manages multiple AI coding agents ([Claude Code](https://github.com/anthropics/claude-code), [Codex](https://github.com/openai/codex), [Gemini](https://github.com/google-gemini/gemini-cli), [Aider](https://github.com/Aider-AI/aider)) in separate workspaces, allowing you to work on multiple tasks simultaneously.
 
+![Screenshot](assets/screenshot.png)
 
-![Claude Squad Screenshot](assets/screenshot.png)
+## Highlights
 
-### Highlights
 - Complete tasks in the background (including yolo / auto-accept mode!)
 - Manage instances and tasks in one terminal window
 - Review changes before applying them, checkout changes before pushing them
 - Each task gets its own isolated git workspace, so no conflicts
+- **[Planned]** Task coordination and progress synchronization between agents
 
-<br />
+## Installation
 
-https://github.com/user-attachments/assets/aef18253-e58f-4525-9032-f5a3d66c975a
-
-<br />
-
-### Installation
-
-Both Homebrew and manual installation will install Claude Squad as `cs` on your system.
-
-#### Homebrew
+### From Source
 
 ```bash
-brew install claude-squad
-ln -s "$(brew --prefix)/bin/claude-squad" "$(brew --prefix)/bin/cs"
-```
-
-#### Manual
-
-Claude Squad can also be installed by running the following command:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/smtg-ai/claude-squad/main/install.sh | bash
-```
-
-This puts the `cs` binary in `~/.local/bin`.
-
-To use a custom name for the binary:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/smtg-ai/claude-squad/main/install.sh | bash -s -- --name <your-binary-name>
+git clone https://github.com/Conansgithub/ai_cli_squad.git
+cd ai_cli_squad
+go build -o cs ./main.go
+mv cs ~/.local/bin/  # or anywhere in your PATH
 ```
 
 ### Prerequisites
 
 - [tmux](https://github.com/tmux/tmux/wiki/Installing)
-- [gh](https://cli.github.com/)
+- [gh](https://cli.github.com/) (optional, for GitHub integration)
+- Go 1.21+ (for building from source)
 
-### Usage
-
-```
-Usage:
-  cs [flags]
-  cs [command]
-
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  debug       Print debug information like config paths
-  help        Help about any command
-  reset       Reset all stored instances
-  version     Print the version number of claude-squad
-
-Flags:
-  -y, --autoyes          [experimental] If enabled, all instances will automatically accept prompts for claude code & aider
-  -h, --help             help for claude-squad
-  -p, --program string   Program to run in new instances (e.g. 'aider --model ollama_chat/gemma3:1b')
-```
-
-Run the application with:
+## Usage
 
 ```bash
+# Start the TUI
 cs
+
+# Start with auto-accept mode
+cs -y
+
+# Use with different AI assistants
+cs -p "aider ..."
+cs -p "codex"
+cs -p "gemini"
+
+# Reset all instances
+cs reset
+
+# Show help
+cs --help
 ```
-NOTE: The default program is `claude` and we recommend using the latest version.
 
-<br />
+## Keyboard Shortcuts
 
-<b>Using Claude Squad with other AI assistants:</b>
-- For [Codex](https://github.com/openai/codex): Set your API key with `export OPENAI_API_KEY=<your_key>`
-- Launch with specific assistants:
-   - Codex: `cs -p "codex"`
-   - Aider: `cs -p "aider ..."`
-   - Gemini: `cs -p "gemini"`
-- Make this the default, by modifying the config file (locate with `cs debug`)
+### Instance Management
+| Key | Action |
+|-----|--------|
+| `n` | Create new session |
+| `N` | Create new session with prompt |
+| `D` | Delete selected session |
+| `↑/j` `↓/k` | Navigate between sessions |
 
-<br />
+### Actions
+| Key | Action |
+|-----|--------|
+| `Enter/o` | Attach to session |
+| `Ctrl+Q` | Detach from session |
+| `s` | Commit and push to GitHub |
+| `c` | Checkout (pause session) |
+| `r` | Resume paused session |
+| `?` | Show help |
 
-#### Menu
-The menu at the bottom of the screen shows available commands: 
+### Navigation
+| Key | Action |
+|-----|--------|
+| `Tab` | Switch preview/diff tab |
+| `Shift+↑/↓` | Scroll in diff view |
+| `q` | Quit |
 
-##### Instance/Session Management
-- `n` - Create a new session
-- `N` - Create a new session with a prompt
-- `D` - Kill (delete) the selected session
-- `↑/j`, `↓/k` - Navigate between sessions
+## How It Works
 
-##### Actions
-- `↵/o` - Attach to the selected session to reprompt
-- `ctrl-q` - Detach from session
-- `s` - Commit and push branch to github
-- `c` - Checkout. Commits changes and pauses the session
-- `r` - Resume a paused session
-- `?` - Show help menu
+1. **tmux** - Creates isolated terminal sessions for each agent
+2. **git worktrees** - Isolates codebases so each session works on its own branch
+3. **TUI** - Simple terminal interface for navigation and management
 
-##### Navigation
-- `tab` - Switch between preview tab and diff tab
-- `q` - Quit the application
-- `shift-↓/↑` - scroll in diff view
+## Roadmap
 
-### FAQs
+- [ ] Task coordination system
+- [ ] Progress synchronization between agents
+- [ ] Agent-to-agent communication
+- [ ] GitHub Issues integration
+- [ ] Dependency management between tasks
 
-#### Failed to start new session
+## Project Structure
 
-If you get an error like `failed to start new session: timed out waiting for tmux session`, update the
-underlying program (ex. `claude`) to the latest version.
+```
+ai_cli_squad/
+├── main.go              # CLI entry point
+├── app/                 # TUI application layer
+├── session/             # Session management
+│   ├── instance.go      # Instance lifecycle
+│   ├── git/             # Git worktree isolation
+│   └── tmux/            # Tmux session management
+├── ui/                  # UI components
+├── config/              # Configuration
+├── daemon/              # Background daemon
+└── openspec/            # Specifications
+```
 
-### How It Works
+## Configuration
 
-1. **tmux** to create isolated terminal sessions for each agent
-2. **git worktrees** to isolate codebases so each session works on its own branch
-3. A simple TUI interface for easy navigation and management
+Configuration file location: `~/.claude-squad/config.json`
 
-### License
+```json
+{
+  "default_program": "claude",
+  "auto_yes": false,
+  "branch_prefix": "username/"
+}
+```
+
+## License
 
 [AGPL-3.0](LICENSE.md)
 
-### Star History
+## Acknowledgments
 
-[![Star History Chart](https://api.star-history.com/svg?repos=smtg-ai/claude-squad&type=Date)](https://www.star-history.com/#smtg-ai/claude-squad&Date)
+This project is a derivative work based on [Claude Squad](https://github.com/smtg-ai/claude-squad) by [smtg-ai](https://github.com/smtg-ai).
+
+Original project licensed under AGPL-3.0. This derivative work maintains the same license.
